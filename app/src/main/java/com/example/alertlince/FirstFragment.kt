@@ -10,9 +10,7 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.telephony.SmsManager
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Button
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
@@ -23,21 +21,9 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.Task
 import java.util.*
 
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
 class FirstFragment : Fragment() {
-    private var param1: String? = null
-    private var param2: String? = null
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,15 +38,23 @@ class FirstFragment : Fragment() {
         }
 
         inicializarBluetoothListener()
-
         return view
     }
 
     private fun ejecutarAlerta() {
+        val prefs = requireContext().getSharedPreferences("config_alerta", Context.MODE_PRIVATE)
+        val enviarSMS = prefs.getBoolean("alerta_sms", false)
+        val enviarWhatsapp = prefs.getBoolean("alerta_whatsapp", false)
+
+        if (!enviarSMS && !enviarWhatsapp) {
+            Toast.makeText(requireContext(), "Debe activar al menos un método de envío", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         obtenerUbicacion { mensajeSMS, mensajeWhatsapp ->
             if (mensajeSMS != null && mensajeWhatsapp != null) {
-                sendSms(mensajeSMS)
-                sendWhatsappMessage(mensajeWhatsapp)
+                if (enviarSMS) sendSms(mensajeSMS)
+                if (enviarWhatsapp) sendWhatsappMessage(mensajeWhatsapp)
             } else {
                 Toast.makeText(requireContext(), "No se pudo obtener la ubicación", Toast.LENGTH_SHORT).show()
             }
@@ -68,7 +62,8 @@ class FirstFragment : Fragment() {
     }
 
     private fun obtenerUbicacion(callback: (String?, String?) -> Unit) {
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
             callback(null, null)
             return
@@ -96,7 +91,8 @@ class FirstFragment : Fragment() {
 
     private fun sendSms(message: String) {
         val context = requireContext()
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS)
+            != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.SEND_SMS), 2)
             Toast.makeText(context, "Permiso para enviar SMS no concedido", Toast.LENGTH_SHORT).show()
             return
@@ -143,8 +139,10 @@ class FirstFragment : Fragment() {
     private fun inicializarBluetoothListener() {
         val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
 
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
-            ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_CONNECT)
+            != PackageManager.PERMISSION_GRANTED ||
+            ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_SCAN)
+            != PackageManager.PERMISSION_GRANTED) {
 
             ActivityCompat.requestPermissions(
                 requireActivity(),
@@ -199,38 +197,19 @@ class FirstFragment : Fragment() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
         when (requestCode) {
-            1 -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    ejecutarAlerta()
-                } else {
-                    Log.d("Permisos", "Permiso de ubicación denegado")
-                }
+            1 -> if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                ejecutarAlerta()
             }
-            2 -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(requireContext(), "Permiso para enviar SMS concedido", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(requireContext(), "Permiso para enviar SMS denegado", Toast.LENGTH_SHORT).show()
-                }
+            2 -> if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(requireContext(), "Permiso para enviar SMS concedido", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(requireContext(), "Permiso para enviar SMS denegado", Toast.LENGTH_SHORT).show()
             }
-            3 -> {
-                if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                    inicializarBluetoothListener()
-                } else {
-                    Toast.makeText(requireContext(), "Permisos Bluetooth denegados", Toast.LENGTH_SHORT).show()
-                }
+            3 -> if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                inicializarBluetoothListener()
+            } else {
+                Toast.makeText(requireContext(), "Permisos Bluetooth denegados", Toast.LENGTH_SHORT).show()
             }
         }
-    }
-
-    companion object {
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            FirstFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
     }
 }

@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     tools:context=".FourthFragment">
 
-    <!-- Título superior fijo -->
+    <!-- Título -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -20,7 +20,8 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="100dp">
+        android:layout_marginTop="100dp"
+        android:layout_marginBottom="80dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -42,39 +43,7 @@
                 android:padding="8dp"
                 android:layout_marginBottom="12dp" />
 
-
-
-
-
-
-            <!-- Sección: Notificaciones -->
-            <TextView
-                android:text="🔔 Notificaciones"
-                android:textStyle="bold"
-                android:textSize="17sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp" />
-
-            <Switch
-                android:id="@+id/switch_notificaciones"
-                android:text="Habilitar Notificaciones"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <Switch
-                android:id="@+id/switch_tono"
-                android:text="Tono de Alerta"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <Switch
-                android:id="@+id/switch_vibracion"
-                android:text="Activar Vibración"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <!-- Sección: Emergencia -->
+            <!-- Configuración de emergencia -->
             <TextView
                 android:text="🚨 Configuración de Emergencia"
                 android:textStyle="bold"
@@ -84,52 +53,23 @@
                 android:layout_marginTop="16dp" />
 
             <TextView
-                android:text="Método de envío"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <CheckBox
-                android:id="@+id/checkbox_notificacion"
-                android:text="Notificación a contactos"
-                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:checked="true" />
+                android:text="Método de envío" />
 
             <CheckBox
                 android:id="@+id/checkbox_sms"
-                android:text="SMS con Ubicación"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:text="SMS con Ubicación" />
 
             <CheckBox
-                android:id="@+id/checkbox_email"
-                android:text="Correo electrónico"
+                android:id="@+id/checkbox_whatsapp"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <Switch
-                android:id="@+id/switch_ubicacion"
-                android:text="Compartir Ubicación en tiempo real"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <!-- Sección: Contactos -->
-            <TextView
-                android:text="👥 Gestión de Contactos"
-                android:textStyle="bold"
-                android:textSize="17sp"
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp" />
+                android:text="WhatsApp" />
 
-            <TextView
-                android:id="@+id/text_actualizar_contactos"
-                android:text="Actualizar contactos"
-                android:textColor="@android:color/holo_blue_dark"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <!-- Sección: Seguridad -->
+            <!-- Seguridad -->
             <TextView
                 android:text="🔐 Seguridad"
                 android:textStyle="bold"
@@ -140,41 +80,30 @@
 
             <Switch
                 android:id="@+id/switch_pin"
-                android:text="Bloquear con PIN"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:text="Bloquear con PIN" />
 
             <TextView
                 android:id="@+id/text_permisos"
-                android:text="Ver permisos de la app"
-                android:textColor="@android:color/holo_blue_dark"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <!-- Sección: Soporte -->
-            <TextView
-                android:text="🛠 Soporte"
-                android:textStyle="bold"
-                android:textSize="17sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp" />
+                android:text="Ver permisos de la app"
+                android:textColor="@android:color/holo_blue_dark" />
 
-            <TextView
-                android:id="@+id/text_guia"
-                android:text="Guía de uso"
-                android:textColor="@android:color/holo_blue_dark"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:id="@+id/text_reporte"
-                android:text="Reportar un problema"
-                android:textColor="@android:color/holo_blue_dark"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
+            <!-- Botón flotante inferior para cerrar sesión -->
+            <ImageButton
+                android:id="@+id/btn_sesion_menu"
+                android:layout_width="40dp"
+                android:layout_height="34dp"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_marginBottom="24dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="Menú de sesión"
+                android:src="@drawable/cerrarsesion"
+                android:elevation="8dp" />
         </LinearLayout>
     </ScrollView>
+
 
 </FrameLayout>

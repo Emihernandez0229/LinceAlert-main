@@ -1,16 +1,14 @@
 package com.example.alertlince
 
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
+import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.TextView
-import android.widget.Toast
+import android.view.*
+import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import java.io.IOException
@@ -20,7 +18,7 @@ class FourthFragment : Fragment() {
 
     private lateinit var bluetoothStatusText: TextView
     private var bluetoothSocket: BluetoothSocket? = null
-    private val esp32Name = "ESP32_ALERTA"
+    private val esp32Name = "ESP32_ALERTAaa"
     private val checkHandler = Handler()
     private val checkInterval = 10000L // Verificar cada 10 segundos
 
@@ -29,9 +27,51 @@ class FourthFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_fourth, container, false)
+
         bluetoothStatusText = view.findViewById(R.id.bluetoothStatusText)
+
+        // Referencias a los CheckBox
+        val checkboxSms = view.findViewById<CheckBox>(R.id.checkbox_sms)
+        val checkboxWhatsapp = view.findViewById<CheckBox>(R.id.checkbox_whatsapp)
+
+        // Leer y aplicar estado guardado
+        val prefs = requireContext().getSharedPreferences("config_alerta", Context.MODE_PRIVATE)
+        checkboxSms.isChecked = prefs.getBoolean("alerta_sms", false)
+        checkboxWhatsapp.isChecked = prefs.getBoolean("alerta_whatsapp", false)
+
+        // Guardar cuando cambian
+        checkboxSms.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean("alerta_sms", isChecked).apply()
+        }
+
+        checkboxWhatsapp.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean("alerta_whatsapp", isChecked).apply()
+        }
+
+        // Botón de menú de sesión
+        val botonSesion = view.findViewById<ImageButton>(R.id.btn_sesion_menu)
+        botonSesion.setOnClickListener {
+            mostrarMenuCerrarSesion(it)
+        }
+
         startLoop()
         return view
+    }
+
+    private fun mostrarMenuCerrarSesion(view: View) {
+        val popup = PopupMenu(requireContext(), view)
+        popup.menu.add("Cerrar sesión").setOnMenuItemClickListener {
+            val prefs = requireContext().getSharedPreferences("user_session", Context.MODE_PRIVATE)
+            prefs.edit().clear().apply()
+
+            Toast.makeText(requireContext(), "Sesión cerrada", Toast.LENGTH_SHORT).show()
+
+            val intent = Intent(requireContext(), MainActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            true
+        }
+        popup.show()
     }
 
     private fun startLoop() {
@@ -44,7 +84,7 @@ class FourthFragment : Fragment() {
                 }
                 checkHandler.postDelayed(this, checkInterval)
             }
-        }, 1000) // Primera verificación tras 1 segundo
+        }, 1000)
     }
 
     private fun connectToESP32() {
@@ -76,7 +116,7 @@ class FourthFragment : Fragment() {
                 socket.connect()
 
                 bluetoothSocket = socket
-                BluetoothManager.socket = socket // 🔧 Integración clave
+                BluetoothManager.socket = socket
 
                 activity?.runOnUiThread {
                     bluetoothStatusText.text = "✅ Conectado al botón físico"
@@ -91,7 +131,7 @@ class FourthFragment : Fragment() {
                     bluetoothSocket?.close()
                 } catch (_: IOException) { }
                 bluetoothSocket = null
-                BluetoothManager.socket = null // Limpia referencia global en caso de error
+                BluetoothManager.socket = null
             }
         }.start()
     }
