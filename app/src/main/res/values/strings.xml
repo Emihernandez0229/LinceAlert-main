@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">AlertLince</string>
+    <string name="title_activity_register_user">RegisterUser</string>
+    <string name="title_activity_login_user">LoginUser</string>
+    <string name="nohaycuenta">Ya estás regístrado?!</string>
+    <string name="Hello">¡Hola amigo! </string>
+    <string name="signup">Registrarse</string>
+    <string name="signin">Iniciar Sesión</string>
+    <string name="register">Regístrate para comenzar</string>
+    <string name="texto1">Configuracion</string>
+    <string name="Telefono">Telefono</string>
+    <string name="register2">Registrarse</string>
+    <string name="google">Continuar con Google</string>
+    <string name="email">Correo</string>
+    <string name="password">Contraseña</string>
+    <string name="welcome_back">Bienvenido nuevamente</string>
+    <string name="saludo_back">Por favor ingresa tus datos.</string>
+    <string name="webClientId">AIzaSyDbCq8_LXvn4KZ6NYhA3dmsigYnrsJju8c</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_maps">MapsActivity</string>
+    <string name="add_contact">Agregar contacto</string>
+    <string name="activar">Activar Alerta de Emergencia</string>
+    <string name="bienvenida">Bienvenido a LinceAlerta\nTu aplicación de seguridad en emergencias</string>
+    <string name="nombre">Nombre</string>
+    <string name="apellido">Apellido</string>
+    <string name="correo">Correo</string>
+    <string name="relacion">Relacion</string>
+    <string name="activar_otro">Activar</string>
+    <string name="description"></string>
+</resources>

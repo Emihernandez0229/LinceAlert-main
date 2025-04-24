@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="16dp"
+    android:background="@android:color/white"
+    tools:context=".MainActivity">
+
+    <ImageView
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:src="@drawable/ic_lincealerta_logo"
+        android:contentDescription="@string/description"
+        android:layout_marginTop="20dp" />
+
+    <!-- NUEVO TEXTO DE BIENVENIDA -->
+    <TextView
+        android:id="@+id/tvBienvenida"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="¡Bienvenido!"
+        android:textAlignment="center"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/bienvenida"
+        android:textAlignment="center"
+        android:textSize="16sp"
+        android:layout_marginTop="12dp" />
+
+    <FrameLayout
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="20dp">
+
+        <Button
+            android:id="@+id/btn_fondo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/circle_button"
+            android:clickable="false"
+            android:focusable="false"
+            android:text="" />
+
+        <Button
+            android:id="@+id/btn_alerta"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:text=""
+            tools:ignore="SpeakableTextPresentCheck" />
+    </FrameLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/activar"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp" />
+</LinearLayout>

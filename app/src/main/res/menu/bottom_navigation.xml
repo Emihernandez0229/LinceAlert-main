@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/firstFragment"
+        android:icon="@drawable/ic_home"
+        android:title="Inicio"/>
+
+    <item
+        android:id="@+id/secondFragment"
+        android:icon="@drawable/ic_location"
+        android:title="Ubicación"/>
+
+    <item
+        android:id="@+id/thirdFragment"
+        android:icon="@drawable/ice_contactos"
+        android:title="Contactos"/>
+
+    <item
+        android:id="@+id/fourthFragment"
+        android:icon="@drawable/ic_confi"
+        android:title="Ajustes"/>
+
+
+</menu>

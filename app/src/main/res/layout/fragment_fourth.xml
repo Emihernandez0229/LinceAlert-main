@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".FourthFragment">
+
+    <!-- Título superior fijo -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:layout_marginTop="30dp"
+        android:fontFamily="sans-serif-black"
+        android:textColor="@color/celeste_suave"
+        android:textSize="40sp"
+        android:text="Ajustes" />
+
+    <!-- Scroll principal -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="100dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:divider="?android:attr/dividerHorizontal"
+            android:showDividers="middle">
+
+            <!-- Estado Bluetooth -->
+            <TextView
+                android:id="@+id/bluetoothStatusText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="🔍 Estado de Bluetooth..."
+                android:textSize="15sp"
+                android:textColor="@android:color/black"
+                android:background="#EEEEEE"
+                android:padding="8dp"
+                android:layout_marginBottom="12dp" />
+
+
+
+
+
+
+            <!-- Sección: Notificaciones -->
+            <TextView
+                android:text="🔔 Notificaciones"
+                android:textStyle="bold"
+                android:textSize="17sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" />
+
+            <Switch
+                android:id="@+id/switch_notificaciones"
+                android:text="Habilitar Notificaciones"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <Switch
+                android:id="@+id/switch_tono"
+                android:text="Tono de Alerta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <Switch
+                android:id="@+id/switch_vibracion"
+                android:text="Activar Vibración"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <!-- Sección: Emergencia -->
+            <TextView
+                android:text="🚨 Configuración de Emergencia"
+                android:textStyle="bold"
+                android:textSize="17sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" />
+
+            <TextView
+                android:text="Método de envío"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <CheckBox
+                android:id="@+id/checkbox_notificacion"
+                android:text="Notificación a contactos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true" />
+
+            <CheckBox
+                android:id="@+id/checkbox_sms"
+                android:text="SMS con Ubicación"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <CheckBox
+                android:id="@+id/checkbox_email"
+                android:text="Correo electrónico"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <Switch
+                android:id="@+id/switch_ubicacion"
+                android:text="Compartir Ubicación en tiempo real"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <!-- Sección: Contactos -->
+            <TextView
+                android:text="👥 Gestión de Contactos"
+                android:textStyle="bold"
+                android:textSize="17sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" />
+
+            <TextView
+                android:id="@+id/text_actualizar_contactos"
+                android:text="Actualizar contactos"
+                android:textColor="@android:color/holo_blue_dark"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <!-- Sección: Seguridad -->
+            <TextView
+                android:text="🔐 Seguridad"
+                android:textStyle="bold"
+                android:textSize="17sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" />
+
+            <Switch
+                android:id="@+id/switch_pin"
+                android:text="Bloquear con PIN"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/text_permisos"
+                android:text="Ver permisos de la app"
+                android:textColor="@android:color/holo_blue_dark"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <!-- Sección: Soporte -->
+            <TextView
+                android:text="🛠 Soporte"
+                android:textStyle="bold"
+                android:textSize="17sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" />
+
+            <TextView
+                android:id="@+id/text_guia"
+                android:text="Guía de uso"
+                android:textColor="@android:color/holo_blue_dark"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/text_reporte"
+                android:text="Reportar un problema"
+                android:textColor="@android:color/holo_blue_dark"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</FrameLayout>

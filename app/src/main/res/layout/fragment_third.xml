@@ -1,0 +1,100 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ThirdFragment"
+    android:padding="15dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="780dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:paddingBottom="8dp"
+                android:text="Contactos Guardados"
+                android:textColor="@color/celeste_suave"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="16dp"
+                android:text="- Es fundamental mantener actualizado los datos de tus contactos.\n- Editar o Eliminar: Haz doble clic en cualquier contacto para modificar su información o eliminarlo si ya no es necesario."
+                android:textSize="14sp" />
+
+            <TableLayout
+                android:id="@+id/tableContactos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/darker_gray"
+                android:padding="4dp"
+                android:stretchColumns="*">
+
+                <TableRow
+                    android:background="@android:color/white"
+                    android:padding="4dp">
+
+                    <TextView
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="ID"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_weight="2"
+                        android:gravity="center"
+                        android:text="Nombre"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_weight="2"
+                        android:gravity="center"
+                        android:text="Apellido"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_weight="2"
+                        android:gravity="center"
+                        android:text="Relación"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_weight="2"
+                        android:gravity="center"
+                        android:text="Teléfono"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_weight="3"
+                        android:gravity="center"
+                        android:text="Correo"
+                        android:textStyle="bold" />
+                </TableRow>
+
+
+            </TableLayout>
+        </LinearLayout>
+
+        <!-- Ícono colocado libremente -->
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/fab_add_contact"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="end|bottom"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="10dp"
+            android:contentDescription="@string/add_contact"
+            android:elevation="6dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_agregarcontacto" />
+    </FrameLayout>
+</ScrollView>
