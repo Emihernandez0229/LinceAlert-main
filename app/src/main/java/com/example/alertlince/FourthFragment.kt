@@ -1,7 +1,6 @@
 package com.example.alertlince
 
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -11,14 +10,11 @@ import android.view.*
 import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import java.io.IOException
-import java.util.*
 
 class FourthFragment : Fragment() {
 
     private lateinit var bluetoothStatusText: TextView
-    private var bluetoothSocket: BluetoothSocket? = null
-    private val esp32Name = "ESP32_ALERTAaa"
+    private val esp32Name = "ESP32_ALERTA"
     private val checkHandler = Handler()
     private val checkInterval = 10000L // Verificar cada 10 segundos
 
@@ -30,31 +26,25 @@ class FourthFragment : Fragment() {
 
         bluetoothStatusText = view.findViewById(R.id.bluetoothStatusText)
 
-        // Referencias a los CheckBox
+        // Checkboxes para configuración de alerta
         val checkboxSms = view.findViewById<CheckBox>(R.id.checkbox_sms)
         val checkboxWhatsapp = view.findViewById<CheckBox>(R.id.checkbox_whatsapp)
 
-        // Leer y aplicar estado guardado
         val prefs = requireContext().getSharedPreferences("config_alerta", Context.MODE_PRIVATE)
         checkboxSms.isChecked = prefs.getBoolean("alerta_sms", false)
         checkboxWhatsapp.isChecked = prefs.getBoolean("alerta_whatsapp", false)
 
-        // Guardar cuando cambian
         checkboxSms.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean("alerta_sms", isChecked).apply()
         }
-
         checkboxWhatsapp.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean("alerta_whatsapp", isChecked).apply()
         }
 
-        // Botón de menú de sesión
         val botonSesion = view.findViewById<ImageButton>(R.id.btn_sesion_menu)
-        botonSesion.setOnClickListener {
-            mostrarMenuCerrarSesion(it)
-        }
+        botonSesion.setOnClickListener { mostrarMenuCerrarSesion(it) }
 
-        startLoop()
+        startBluetoothCheckLoop()
         return view
     }
 
@@ -74,20 +64,16 @@ class FourthFragment : Fragment() {
         popup.show()
     }
 
-    private fun startLoop() {
-        checkHandler.postDelayed(object : Runnable {
+    private fun startBluetoothCheckLoop() {
+        checkHandler.post(object : Runnable {
             override fun run() {
-                if (bluetoothSocket == null || !isSocketConnected(bluetoothSocket)) {
-                    connectToESP32()
-                } else {
-                    bluetoothStatusText.text = "✅ Conectado al botón físico"
-                }
+                checkBluetoothStatus()
                 checkHandler.postDelayed(this, checkInterval)
             }
-        }, 1000)
+        })
     }
 
-    private fun connectToESP32() {
+    private fun checkBluetoothStatus() {
         val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled) {
             bluetoothStatusText.text = "❌ Bluetooth no disponible o desactivado"
@@ -102,56 +88,16 @@ class FourthFragment : Fragment() {
             return
         }
 
-        val espDevice = bluetoothAdapter.bondedDevices.firstOrNull { it.name == esp32Name }
-
-        if (espDevice == null) {
-            bluetoothStatusText.text = "❌ Botón no emparejado"
-            return
-        }
-
-        Thread {
-            try {
-                val uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
-                val socket = espDevice.createRfcommSocketToServiceRecord(uuid)
-                socket.connect()
-
-                bluetoothSocket = socket
-                BluetoothManager.socket = socket
-
-                activity?.runOnUiThread {
-                    bluetoothStatusText.text = "✅ Conectado al botón físico"
-                    Toast.makeText(requireContext(), "Conexión establecida con ESP32", Toast.LENGTH_SHORT).show()
-                }
-
-            } catch (e: IOException) {
-                activity?.runOnUiThread {
-                    bluetoothStatusText.text = "❌ Falló la conexión"
-                }
-                try {
-                    bluetoothSocket?.close()
-                } catch (_: IOException) { }
-                bluetoothSocket = null
-                BluetoothManager.socket = null
-            }
-        }.start()
-    }
-
-    private fun isSocketConnected(socket: BluetoothSocket?): Boolean {
-        return try {
-            socket?.outputStream?.write("".toByteArray())
-            true
-        } catch (e: IOException) {
-            false
+        val isDevicePaired = bluetoothAdapter.bondedDevices.any { it.name == esp32Name }
+        bluetoothStatusText.text = if (isDevicePaired) {
+            "✅ Botón emparejado"
+        } else {
+            "❌ Botón no emparejado"
         }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         checkHandler.removeCallbacksAndMessages(null)
-        try {
-            bluetoothSocket?.close()
-        } catch (_: IOException) { }
-        bluetoothSocket = null
-        BluetoothManager.socket = null
     }
 }
