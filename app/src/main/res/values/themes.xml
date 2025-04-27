@@ -5,6 +5,7 @@
         <item name="colorPrimary">@color/celeste_claro</item>
         <item name="colorPrimaryVariant">@color/celeste_suave</item>
         <item name="colorOnPrimary">@color/white</item>
+        
     </style>
     <style name="BottomNavigation">
         <item name="android:background">@color/celeste_suave</item>

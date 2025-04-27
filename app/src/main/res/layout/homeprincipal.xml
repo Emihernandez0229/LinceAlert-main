@@ -6,13 +6,13 @@
     android:orientation="vertical"
     android:gravity="center_horizontal"
     android:padding="16dp"
-    android:background="@android:color/white"
+    android:background="@color/blanco_azulado"
     tools:context=".MainActivity">
 
     <ImageView
         android:layout_width="200dp"
         android:layout_height="200dp"
-        android:src="@drawable/ic_lincealerta_logo"
+        android:src="@drawable/logo222"
         android:contentDescription="@string/description"
         android:layout_marginTop="20dp" />
 
@@ -44,7 +44,7 @@
             android:id="@+id/btn_fondo"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/circle_button"
+            android:background="@drawable/alertaicono"
             android:clickable="false"
             android:focusable="false"
             android:text="" />
