@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.view.*
 import android.widget.*
 import androidx.core.content.ContextCompat
@@ -17,6 +18,8 @@ class FourthFragment : Fragment() {
     private val esp32Name = "ESP32_ALERTA"
     private val checkHandler = Handler()
     private val checkInterval = 10000L // Verificar cada 10 segundos
+    private lateinit var checkBiometria:CheckBox
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -24,11 +27,13 @@ class FourthFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_fourth, container, false)
 
+        checkBiometria = view.findViewById(R.id.check_biometria)
+
         bluetoothStatusText = view.findViewById(R.id.bluetoothStatusText)
 
         // Checkboxes para configuración de alerta
-        val checkboxSms = view.findViewById<CheckBox>(R.id.checkbox_sms)
-        val checkboxWhatsapp = view.findViewById<CheckBox>(R.id.checkbox_whatsapp)
+        val checkboxSms = view.findViewById<CheckBox>(R.id.checkbox_sms_1)
+        val checkboxWhatsapp = view.findViewById<CheckBox>(R.id.checkbox_whatsapp_1)
 
         val prefs = requireContext().getSharedPreferences("config_alerta", Context.MODE_PRIVATE)
         checkboxSms.isChecked = prefs.getBoolean("alerta_sms", false)
@@ -41,91 +46,38 @@ class FourthFragment : Fragment() {
             prefs.edit().putBoolean("alerta_whatsapp", isChecked).apply()
         }
 
-        // Modo Claro y Oscuro
-        val checkboxClaroMode = view.findViewById<CheckBox>(R.id.checkbox_claro_mode)
-        val checkboxDarkMode = view.findViewById<CheckBox>(R.id.checkbox_dark_mode)
+        /*// Guardar preferencias biometría
+        val prefsLoginBiometria = requireContext().getSharedPreferences("preferencia_usuario", Context.MODE_PRIVATE)
 
-        checkboxClaroMode.isChecked = true // El modo claro está activo por defecto
+        // Obtener el valor guardado correctamente con la misma clave que se usará para guardar
+        val biometriaActivada = prefsLoginBiometria.getBoolean("biometria_activada", false)
+        checkBiometria.isChecked = biometriaActivada
 
-        // Cambiar a modo oscuro
-        checkboxDarkMode.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                // Desmarcar el modo claro
-                checkboxClaroMode.isChecked = false
-                cambiarModoOscuro(view)
-            } else {
-                cambiarModoClaro(view)
-            }
+        checkBiometria.setOnCheckedChangeListener { _, isChecked ->
+            val prefsLoginBiometria = requireContext().getSharedPreferences("preferencia_usuario", Context.MODE_PRIVATE)
+            prefsLoginBiometria.edit().putBoolean("biometria_activada", isChecked).apply()
+
+            // Si quieres depurar:
+            Log.d("Biometria", "Check guardado: $isChecked")
+        }*/
+
+
+        val prefsLoginBiometria = requireContext().getSharedPreferences("preferencias_usuario", 0)
+        val biometriaActivada = prefsLoginBiometria.getBoolean("biometria_activada", false)
+        checkBiometria.isChecked = biometriaActivada
+
+        checkBiometria.setOnCheckedChangeListener { _, isChecked ->
+            prefsLoginBiometria.edit().putBoolean("biometria_activada", isChecked).apply()
         }
 
-        // Cambiar a modo claro
-        checkboxClaroMode.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                // Desmarcar el modo oscuro
-                checkboxDarkMode.isChecked = false
-                cambiarModoClaro(view)
-            }
-        }
 
-        val botonSesion = view.findViewById<ImageButton>(R.id.btn_sesion_menu)
-        botonSesion.setOnClickListener { mostrarMenuCerrarSesion(it) }
 
-        startBluetoothCheckLoop()
-        return view
-    }
 
-    private fun cambiarModoOscuro(view: View) {
-        // Cambiar el fondo a color oscuro
-        view.setBackgroundColor(android.graphics.Color.rgb(58, 68, 90))  // RGB(67, 124, 177)
 
-        // Cambiar el color de la letra a blanco en todos los TextViews
-        bluetoothStatusText.setTextColor(android.graphics.Color.WHITE)  // Texto blanco
 
-        // Cambiar el color de los Checkboxes a blanco
-        val checkboxSms = view.findViewById<CheckBox>(R.id.checkbox_sms)
-        val checkboxWhatsapp = view.findViewById<CheckBox>(R.id.checkbox_whatsapp)
-
-        checkboxSms.setTextColor(android.graphics.Color.WHITE)
-        checkboxWhatsapp.setTextColor(android.graphics.Color.WHITE)
-
-        // Cambiar el color de cualquier otro texto a blanco (por ejemplo, títulos o etiquetas)
-        val tituloConfig = view.findViewById<TextView>(R.id.titulo_configuracion) // Asegúrate de tener este id en tu XML
-        val tituloMetodo = view.findViewById<TextView>(R.id.titulo_metodo) // Asegúrate de tener este id en tu XML
-        val tituloModo = view.findViewById<TextView>(R.id.titulo_modo) // Asegúrate de tener este id en tu XML
-
-        tituloConfig.setTextColor(android.graphics.Color.WHITE)
-        tituloMetodo.setTextColor(android.graphics.Color.WHITE)
-        tituloModo.setTextColor(android.graphics.Color.WHITE)
-    }
-
-    private fun cambiarModoClaro(view: View) {
-        // Cambiar el fondo a color claro
-        view.setBackgroundColor(android.graphics.Color.WHITE)
-
-        // Cambiar el color de la letra a negro en todos los TextViews
-        bluetoothStatusText.setTextColor(android.graphics.Color.BLACK)  // Texto negro
-
-        // Cambiar el color de los Checkboxes a negro
-        val checkboxSms = view.findViewById<CheckBox>(R.id.checkbox_sms)
-        val checkboxWhatsapp = view.findViewById<CheckBox>(R.id.checkbox_whatsapp)
-
-        checkboxSms.setTextColor(android.graphics.Color.BLACK)
-        checkboxWhatsapp.setTextColor(android.graphics.Color.BLACK)
-
-        // Cambiar el color de cualquier otro texto a negro (por ejemplo, títulos o etiquetas)
-        val tituloConfig = view.findViewById<TextView>(R.id.titulo_configuracion) // Asegúrate de tener este id en tu XML
-        val tituloMetodo = view.findViewById<TextView>(R.id.titulo_metodo) // Asegúrate de tener este id en tu XML
-        val tituloModo = view.findViewById<TextView>(R.id.titulo_modo) // Asegúrate de tener este id en tu XML
-
-        tituloConfig.setTextColor(android.graphics.Color.BLACK)
-        tituloMetodo.setTextColor(android.graphics.Color.BLACK)
-        tituloModo.setTextColor(android.graphics.Color.BLACK)
-    }
-
-    private fun mostrarMenuCerrarSesion(view: View) {
-        val popup = PopupMenu(requireContext(), view)
-        popup.menu.add("Cerrar sesión").setOnMenuItemClickListener {
-            val prefs = requireContext().getSharedPreferences("user_session", Context.MODE_PRIVATE)
+        val logoutButton = view.findViewById<LinearLayout>(R.id.logout_button)
+        logoutButton.setOnClickListener {
+            val prefs = requireContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE)
             prefs.edit().clear().apply()
 
             Toast.makeText(requireContext(), "Sesión cerrada", Toast.LENGTH_SHORT).show()
@@ -133,10 +85,24 @@ class FourthFragment : Fragment() {
             val intent = Intent(requireContext(), MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
-            true
         }
-        popup.show()
+        val rastreoBtn = view.findViewById<LinearLayout>(R.id.rastrear_ubicacion_button)
+        rastreoBtn.setOnClickListener {
+            // Abre tu mapa o consulta al ESP32
+            val intent = Intent(requireContext(), SecondFragment::class.java)
+            startActivity(intent)
+        }
+
+
+
+        startBluetoothCheckLoop()
+        return view
     }
+
+
+
+
+
 
     private fun startBluetoothCheckLoop() {
         checkHandler.post(object : Runnable {
@@ -169,6 +135,8 @@ class FourthFragment : Fragment() {
             "❌ Botón no emparejado"
         }
     }
+
+
 
     override fun onDestroyView() {
         super.onDestroyView()

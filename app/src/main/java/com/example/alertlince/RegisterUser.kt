@@ -6,6 +6,7 @@ import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -37,7 +38,19 @@ class RegisterUser : Fragment() {
         btnSignUp = view.findViewById(R.id.sign_up)
         btnInicio = view.findViewById(R.id.btn_inicio)
 
+        // Animación fade in para campos al entrar al fragment
+        val fadeIn = AnimationUtils.loadAnimation(requireContext(), android.R.anim.fade_in)
+        email.startAnimation(fadeIn)
+        telefono.startAnimation(fadeIn)
+        password.startAnimation(fadeIn)
+        btnSignUp.startAnimation(fadeIn)
+        btnInicio.startAnimation(fadeIn)
+
         btnSignUp.setOnClickListener {
+            // Animación scale para el botón al hacer click
+            val scaleAnim = AnimationUtils.loadAnimation(requireContext(), android.R.anim.fade_in)
+            btnSignUp.startAnimation(scaleAnim)
+
             val emailText = email.text.toString().trim()
             val telefonoText = telefono.text.toString().trim()
             val passwordText = password.text.toString().trim()
@@ -50,6 +63,10 @@ class RegisterUser : Fragment() {
 
         btnInicio.setOnClickListener {
             parentFragmentManager.beginTransaction()
+                .setCustomAnimations(
+                    android.R.anim.slide_in_left, // entrada
+                    android.R.anim.slide_out_right // salida
+                )
                 .replace(R.id.fragment_container, LoginUser())
                 .commit()
         }
@@ -64,8 +81,8 @@ class RegisterUser : Fragment() {
             Toast.makeText(context, "Ingrese un email válido", Toast.LENGTH_SHORT).show()
             return false
         }
-        if (password.length < 6) {
-            Toast.makeText(context, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show()
+        if (password.length < 8) {
+            Toast.makeText(context, "La contraseña debe tener al menos 8 caracteres", Toast.LENGTH_SHORT).show()
             return false
         }
         if (!telefono.matches(Regex("^\\+?[0-9]{10,15}$"))) {
@@ -76,9 +93,6 @@ class RegisterUser : Fragment() {
     }
 
     private fun registerUser(email: String, telefono: String, contrasena: String) {
-        // Aquí ya no usamos Firebase para la creación del usuario
-        // Implementamos el registro en la base de datos local
-
         val context = requireContext()
         val usuarioDao = UsuarioDao(context)
         val resultado = usuarioDao.insertarUsuario(email, telefono, contrasena)
@@ -87,11 +101,10 @@ class RegisterUser : Fragment() {
         if (resultado != -1L) {  // Si la inserción fue exitosa
             Toast.makeText(context, "Usuario registrado exitosamente", Toast.LENGTH_SHORT).show()
 
-            // Reemplazar la actividad actual por la nueva actividad (com.example.alertlince.MainActivity)
             activity?.let {
                 val intent = Intent(it, Vistas::class.java)
                 it.startActivity(intent)
-                requireActivity().finish()  // Finalizar la actividad actual si es necesario
+                requireActivity().finish()
             }
         } else {
             Toast.makeText(context, "Error al registrar usuario en la base de datos local", Toast.LENGTH_SHORT).show()

@@ -32,7 +32,7 @@
                 android:gravity="center"
                 android:paddingBottom="8dp"
                 android:text="Contactos Guardados"
-                android:textColor="@color/celeste_suave"
+                android:textColor="@color/celeste_metalico"
                 android:textSize="24sp"
                 android:textStyle="bold" />
 

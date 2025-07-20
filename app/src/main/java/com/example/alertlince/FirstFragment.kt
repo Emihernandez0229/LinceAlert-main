@@ -80,7 +80,9 @@ class FirstFragment : Fragment() {
             if (location != null) {
                 val lat = location.latitude
                 val lng = location.longitude
-                val mensajeSMS = "¡Alerta de emergencia! Ubicación: Lat: $lat, Lng: $lng"
+                //val mensajeSMS = "¡Alerta de emergencia! Ubicación: Lat: $lat, Lng: $lng"
+                val msmAsd = "!Alerta!"
+                val mensajeSMS = "$msmAsd https://www.google.com/maps?q=$lat,$lng"
                 val mensajeWhatsapp = "¡Alerta de emergencia! Estoy aquí: https://www.google.com/maps?q=$lat,$lng"
                 callback(mensajeSMS, mensajeWhatsapp)
             } else {

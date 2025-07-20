@@ -6,18 +6,23 @@ import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.alertlince.controller.UsuarioDao
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 
 class LoginUser : Fragment() {
 
-    private lateinit var correoEditText: TextInputEditText
+    private lateinit var emailEditText: TextInputEditText
     private lateinit var passwordEditText: TextInputEditText
+    private lateinit var emailLayout: TextInputLayout
+    private lateinit var passwordLayout: TextInputLayout
     private lateinit var signInButton: Button
+    //private lateinit var switchBiometria: SwitchMaterial
     private lateinit var signUpTextView: TextView
 
     override fun onCreateView(
@@ -27,23 +32,40 @@ class LoginUser : Fragment() {
         val rootView = inflater.inflate(R.layout.activity_loginuser, container, false)
 
         // Referencias a vistas
-        correoEditText = rootView.findViewById(R.id.email)  // Puedes renombrar el ID a "correo" en el XML para mayor coherencia
+        emailEditText = rootView.findViewById(R.id.email)
         passwordEditText = rootView.findViewById(R.id.password)
+        emailLayout = rootView.findViewById(R.id.email_layout)
+        passwordLayout = rootView.findViewById(R.id.password_layout)
         signInButton = rootView.findViewById(R.id.btn_signin)
+        //switchBiometria = rootView.findViewById(R.id.switch_biometria) // este se cambio a fourth fragment
         signUpTextView = rootView.findViewById(R.id.sign_up)
 
-        // Clic en botón de inicio de sesión
+        // Animaciones de entrada
+        val fadeIn = AnimationUtils.loadAnimation(context, R.anim.fade_in)
+        emailEditText.startAnimation(fadeIn)
+        passwordEditText.startAnimation(fadeIn)
+        signInButton.startAnimation(fadeIn)
+        //switchBiometria.startAnimation(fadeIn)
+        signUpTextView.startAnimation(fadeIn)
+
+        /*// Preferencias biometría
+        val prefs = requireContext().getSharedPreferences("preferencias_usuario", 0)
+        val biometriaActivada = prefs.getBoolean("biometria_activada", false)
+        switchBiometria.isChecked = biometriaActivada
+
+        switchBiometria.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean("biometria_activada", isChecked).apply()
+        }*/
+
         signInButton.setOnClickListener {
-            val correo = correoEditText.text.toString().trim()
+            val email = emailEditText.text.toString().trim()
             val password = passwordEditText.text.toString().trim()
 
-            if (validateInput(correo, password)) {
-                signInButton.isEnabled = false
-                login(correo, password)
-            }
+            if (!validateInput(email, password)) return@setOnClickListener
+
+            login(email, password)
         }
 
-        // Clic en enlace de registro
         signUpTextView.setOnClickListener {
             val registerUserFragment = RegisterUser()
             requireActivity().supportFragmentManager.beginTransaction()
@@ -55,30 +77,40 @@ class LoginUser : Fragment() {
         return rootView
     }
 
-    private fun validateInput(correo: String, password: String): Boolean {
-        if (correo.isEmpty() || password.isEmpty()) {
-            Toast.makeText(context, "Todos los campos son obligatorios", Toast.LENGTH_SHORT).show()
-            return false
-        }
-        if (!Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
-            Toast.makeText(context, "Ingrese un correo válido", Toast.LENGTH_SHORT).show()
-            return false
-        }
-        if (password.length < 6) {
-            Toast.makeText(context, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show()
-            return false
+    private fun validateInput(email: String, password: String): Boolean {
+        var isValid = true
+        emailLayout.error = null
+        passwordLayout.error = null
+
+        if (email.isEmpty()) {
+            emailLayout.error = "Campo requerido"
+            isValid = false
+        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailLayout.error = "Correo no válido"
+            isValid = false
         }
 
-        return true
+        if (password.isEmpty()) {
+            passwordLayout.error = "Campo requerido"
+            isValid = false
+        } else if (password.length < 6) {
+            passwordLayout.error = "Mínimo 6 caracteres"
+            isValid = false
+        }
+
+        return isValid
     }
 
-    private fun login(correo: String, password: String) {
+    private fun login(email: String, password: String) {
         val context = requireContext()
         val usuarioDao = UsuarioDao(context)
-        val resultado = usuarioDao.obtenerUsuario(correo, password)
+        val resultado = usuarioDao.obtenerUsuario(email, password)
 
-        signInButton.isEnabled = true
         if (resultado) {
+            val prefs = requireContext().getSharedPreferences("UserSession", 0)
+            prefs.edit().putBoolean("isLoggedIn", true).apply()
+
+
             Toast.makeText(context, "Sesión exitosa", Toast.LENGTH_SHORT).show()
             activity?.let {
                 val intent = Intent(it, Vistas::class.java)
@@ -86,7 +118,58 @@ class LoginUser : Fragment() {
                 requireActivity().finish()
             }
         } else {
-            Toast.makeText(context, "Error de Autenticación", Toast.LENGTH_SHORT).show()
+            // Shake animation al fallar
+            val shake = AnimationUtils.loadAnimation(context, R.anim.shake)
+            emailEditText.startAnimation(shake)
+            passwordEditText.startAnimation(shake)
+
+            emailLayout.error = "Credenciales incorrectas"
+            passwordLayout.error = "Credenciales incorrectas"
         }
     }
+
+    /*private fun mostrarAutenticacionBiometrica(onSuccess: () -> Unit) {
+        val biometricManager = BiometricManager.from(requireContext())
+        val canAuthenticate = biometricManager.canAuthenticate(
+            BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                    BiometricManager.Authenticators.DEVICE_CREDENTIAL
+        )
+
+        if (canAuthenticate != BiometricManager.BIOMETRIC_SUCCESS) {
+            Toast.makeText(requireContext(), "La autenticación biométrica no está disponible", Toast.LENGTH_LONG).show()
+            return
+        }
+
+        val executor = ContextCompat.getMainExecutor(requireContext())
+
+        val biometricPrompt = BiometricPrompt(this, executor,
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    super.onAuthenticationSucceeded(result)
+                    onSuccess()
+                }
+
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    super.onAuthenticationError(errorCode, errString)
+                    Toast.makeText(requireContext(), "Error: $errString", Toast.LENGTH_SHORT).show()
+                }
+
+                override fun onAuthenticationFailed() {
+                    super.onAuthenticationFailed()
+                    Toast.makeText(requireContext(), "Autenticación fallida", Toast.LENGTH_SHORT).show()
+                }
+            })
+
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Autenticación biométrica")
+            .setSubtitle("Confirma tu identidad")
+            .setDescription("Usa huella, rostro o PIN")
+            .setAllowedAuthenticators(
+                BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                        BiometricManager.Authenticators.DEVICE_CREDENTIAL
+            )
+            .build()
+
+        biometricPrompt.authenticate(promptInfo)
+    }*/
 }

@@ -26,5 +26,11 @@
     <string name="correo">Correo</string>
     <string name="relacion">Relacion</string>
     <string name="activar_otro">Activar</string>
+    <string name="welcome">Inicia sesión para enviar alertas cuando más se necesite</string>
+    <string name="biometria">Usar autenticación biométrica</string>
+    <string name="newaccount">¿No tienes cuenta?</string>
+    <string name="descriptionloginimg">Imagen</string>
+    <string name="account">Crea tu cuenta para comenzar</string>
+    <string name="telegono">Telefono</string>
     <string name="description"></string>
 </resources>
