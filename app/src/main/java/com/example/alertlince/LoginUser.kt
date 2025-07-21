@@ -104,7 +104,7 @@ class LoginUser : Fragment() {
     private fun login(email: String, password: String) {
         val context = requireContext()
         val usuarioDao = UsuarioDao(context)
-        val resultado = usuarioDao.obtenerUsuario(email, password)
+        val resultado = usuarioDao.loginUsuario(email, password)
 
         if (resultado) {
             val prefs = requireContext().getSharedPreferences("UserSession", 0)

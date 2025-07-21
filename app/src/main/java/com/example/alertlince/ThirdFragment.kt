@@ -1,6 +1,7 @@
 package com.example.alertlince
 
 import android.app.AlertDialog
+import android.content.Context
 import android.os.Bundle
 import android.view.*
 import android.widget.*
@@ -73,8 +74,16 @@ class ThirdFragment : Fragment() {
         val context = requireContext()
         val num = UsuarioDao(context)
         val contactos = num.obtenerContactos()
+
+
         actualizarTabla(contactos)
     }
+
+    private fun obtenerIdUsuarioActual(context: Context): Int {
+        val prefs = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+        return prefs.getLong("idUsuario", -1L).toInt()
+    }
+
 
     private fun actualizarTabla(contactos: List<Map<String, String>>) {
         val tableLayout = binding.root.findViewById<TableLayout>(R.id.tableContactos)
@@ -128,6 +137,8 @@ class ThirdFragment : Fragment() {
     private fun editarContacto(idContacto: Int) {
         val context = requireContext()
         val num = UsuarioDao(context)
+
+        // Obtener el contacto actual del usuario activo
         val contacto = num.obtenerContactos().find { it["idContacto"]?.toIntOrNull() == idContacto } ?: return
 
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_editar_contacto, null)
@@ -184,6 +195,7 @@ class ThirdFragment : Fragment() {
             .setNegativeButton("Cancelar", null)
             .show()
     }
+
 
     private fun createTextView(text: String): TextView {
         return TextView(context).apply {

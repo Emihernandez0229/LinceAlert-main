@@ -16,25 +16,18 @@ import android.util.Base64
 
 class UsuarioDao(private val context: Context) {
     private val dbHelper = DatabaseHelper(context)
-    private val requestSmsPermission = 1 // Se corrige el nombre a mayúsculas para seguir la convención
+    private val requestSmsPermission = 1
 
-    /**
-     * Solicita permisos de SMS en tiempo de ejecución
-     */
     fun solicitarPermisosSMS(activity: Activity) {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS)
             != PackageManager.PERMISSION_GRANTED) {
 
-            // Si no tiene permiso, solicitarlo
             ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.SEND_SMS), requestSmsPermission)
         } else {
             Log.d("Permisos", "Permiso SEND_SMS ya concedido.")
         }
     }
 
-    /**
-     * Maneja la respuesta del usuario a la solicitud de permisos
-     */
     fun manejarRespuestaPermiso(requestCode: Int, grantResults: IntArray) {
         if (requestCode == requestSmsPermission) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -45,10 +38,22 @@ class UsuarioDao(private val context: Context) {
         }
     }
 
+    // Inserta usuario y lo activa guardando la sesión
+    fun registrarYActivarUsuario(correo: String, telefono: String, contrasena: String): Boolean {
+        val id = insertarUsuario(correo, telefono, contrasena)
+        return if (id != -1L) {
+            guardarIdUsuarioEnSesion(id)
+            true
+        } else {
+            false
+        }
+    }
+
+    // Inserta un usuario nuevo (solo inserción)
     fun insertarUsuario(correo: String, telefono: String, contrasena: String): Long {
         val db = dbHelper.writableDatabase
         return try {
-            val hash = hashPassword(contrasena)  // Aquí generas el hash con salt
+            val hash = hashPassword(contrasena)  // Hashea la contraseña con salt
 
             val valores = ContentValues().apply {
                 put("correo", correo)
@@ -64,16 +69,20 @@ class UsuarioDao(private val context: Context) {
         }
     }
 
-
-    fun obtenerUsuario(correo: String, contrasena: String): Boolean {
+    // Loguea usuario y guarda la sesión
+    fun loginUsuario(correo: String, contrasena: String): Boolean {
         val db = dbHelper.readableDatabase
         val cursor = db.rawQuery(
-            "SELECT contrasena FROM usuarios WHERE correo = ?",
+            "SELECT idUsuario, contrasena FROM usuarios WHERE correo = ?",
             arrayOf(correo)
         )
         val resultado = if (cursor.moveToFirst()) {
-            val storedHash = cursor.getString(0)
-            verifyPassword(contrasena, storedHash)
+            val storedHash = cursor.getString(cursor.getColumnIndexOrThrow("contrasena"))
+            val id = cursor.getLong(cursor.getColumnIndexOrThrow("idUsuario"))
+            if (verifyPassword(contrasena, storedHash)) {
+                guardarIdUsuarioEnSesion(id)
+                true
+            } else false
         } else {
             false
         }
@@ -82,84 +91,35 @@ class UsuarioDao(private val context: Context) {
         return resultado
     }
 
-    fun obtenerNumeros(): List<String> {
-        val db = dbHelper.readableDatabase
-        val cursor = db.rawQuery("SELECT telefono FROM contactoUsuario", null)
-        val numeros = mutableListOf<String>()
-
-        if (cursor.moveToFirst()) {
-            val telefonoIndex = cursor.getColumnIndex("telefono")
-            if (telefonoIndex >= 0) {
-                do {
-                    val telefono = cursor.getString(telefonoIndex)
-                    numeros.add(telefono)
-                } while (cursor.moveToNext())
-            } else {
-                Log.e("DBError", "La columna 'telefono' no fue encontrada en la base de datos.")
-            }
-        } else {
-            Log.e("DBInfo", "No se encontraron resultados en la base de datos.")
-        }
-
-        cursor.close()
-        db.close()
-        return numeros
+    // Obtiene el id del usuario activo en sesión
+    fun obtenerIdUsuarioDeSesion(): Long {
+        val sharedPrefs = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+        return sharedPrefs.getLong("idUsuario", -1)
     }
 
-    fun editarContacto(id: String, nombre: String, apellido: String, relacionUsuario: String, telefono: String, correo: String): Int {
-        val db = dbHelper.writableDatabase
-        var resultado = 0
-        try {
-            if (nombre.isEmpty() || apellido.isEmpty() || telefono.isEmpty() || correo.isEmpty()) {
-                throw IllegalArgumentException("Todos los campos deben ser completados.")
-            }
-
-            val valores = ContentValues().apply {
-                put("nombre", nombre)
-                put("apellido", apellido)
-                put("relacionUsuario", relacionUsuario)
-                put("telefono", telefono)
-                put("correo", correo)
-            }
-
-            resultado = db.update("usuarios", valores, "id = ?", arrayOf(id))
-        } catch (e: Exception) {
-            Log.e("ActualizarUsuario", "Error al actualizar usuario", e)
-        } finally {
-            db.close()
-        }
-
-        return resultado
+    // Guarda el id del usuario activo en SharedPreferences
+    private fun guardarIdUsuarioEnSesion(idUsuario: Long) {
+        val sharedPrefs = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+        sharedPrefs.edit().putLong("idUsuario", idUsuario).apply()
     }
 
-    fun eliminarContacto(id: String): Int {
-        val db = dbHelper.writableDatabase
-        val resultado = db.delete("contactoUsuario", "idContacto = ?", arrayOf(id))
-        db.close()
-        return resultado
+    // Cierra sesión borrando el usuario activo
+    fun cerrarSesion() {
+        val sharedPrefs = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+        sharedPrefs.edit().remove("idUsuario").apply()
     }
 
-    fun insertarContactos(nombre: String, apellido: String, relacion: String, telefono: String, correo: String): Long {
-        val db = dbHelper.writableDatabase
-        val valores = ContentValues().apply {
-            put("nombre", nombre)
-            put("apellido", apellido)
-            put("relacionUsuario", relacion)
-            put("telefono", telefono)
-            put("correo", correo)
-        }
-
-        val resultado = db.insert("contactoUsuario", null, valores)
-        db.close()
-        return resultado
-    }
-
+    // Obtiene los contactos del usuario activo
     fun obtenerContactos(): List<Map<String, String>> {
+        val idUsuario = obtenerIdUsuarioDeSesion()
+        if (idUsuario == -1L) return emptyList()
+
         val db = dbHelper.readableDatabase
         val listaContactos = mutableListOf<Map<String, String>>()
+
         val cursor = db.rawQuery(
-            "SELECT idContacto, nombre, apellido, relacionUsuario, telefono, correo FROM contactoUsuario",
-            null
+            "SELECT idContacto, nombre, apellido, relacionUsuario, telefono, correo FROM contactoUsuario WHERE idUsuario = ?",
+            arrayOf(idUsuario.toString())
         )
 
         try {
@@ -199,22 +159,101 @@ class UsuarioDao(private val context: Context) {
         return listaContactos
     }
 
-    fun guardarIdUsuarioEnSesion(idUsuario: Long) {
-        val sharedPrefs = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
-        val editor = sharedPrefs.edit()
-        editor.putLong("idUsuario", idUsuario)
-        if (editor.commit()) {
-            Log.d("Sesion", "idUsuario guardado: $idUsuario")
+    // Obtiene los números del usuario activo
+    fun obtenerNumeros(): List<String> {
+        val idUsuario = obtenerIdUsuarioDeSesion()
+        if (idUsuario == -1L) return emptyList()
+
+        val db = dbHelper.readableDatabase
+        val cursor = db.rawQuery(
+            "SELECT telefono FROM contactoUsuario WHERE idUsuario = ?",
+            arrayOf(idUsuario.toString())
+        )
+        val numeros = mutableListOf<String>()
+
+        if (cursor.moveToFirst()) {
+            val telefonoIndex = cursor.getColumnIndex("telefono")
+            if (telefonoIndex >= 0) {
+                do {
+                    val telefono = cursor.getString(telefonoIndex)
+                    numeros.add(telefono)
+                } while (cursor.moveToNext())
+            } else {
+                Log.e("DBError", "La columna 'telefono' no fue encontrada en la base de datos.")
+            }
         } else {
-            Log.e("Sesion", "Error al guardar el idUsuario en las preferencias")
+            Log.e("DBInfo", "No se encontraron resultados en la base de datos.")
         }
+
+        cursor.close()
+        db.close()
+        return numeros
     }
 
-    private fun obtenerIdUsuarioDeSesion(): Long {
-        val sharedPrefs = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
-        return sharedPrefs.getLong("idUsuario", -1)
+    // Inserta un contacto ligado al usuario activo
+    fun insertarContactos(nombre: String, apellido: String, relacion: String, telefono: String, correo: String): Long {
+        val idUsuario = obtenerIdUsuarioDeSesion()
+        if (idUsuario == -1L) return -1L
+
+        val db = dbHelper.writableDatabase
+        val valores = ContentValues().apply {
+            put("nombre", nombre)
+            put("apellido", apellido)
+            put("relacionUsuario", relacion)
+            put("telefono", telefono)
+            put("correo", correo)
+            put("idUsuario", idUsuario)
+        }
+
+        val resultado = db.insert("contactoUsuario", null, valores)
+        db.close()
+        return resultado
+    }
+
+    // Edita un contacto asegurándose que pertenece al usuario activo
+    fun editarContacto(idContacto: String, nombre: String, apellido: String, relacionUsuario: String, telefono: String, correo: String): Int {
+        val idUsuario = obtenerIdUsuarioDeSesion()
+        if (idUsuario == -1L) return 0
+
+        val db = dbHelper.writableDatabase
+        var resultado = 0
+        try {
+            if (nombre.isEmpty() || apellido.isEmpty() || telefono.isEmpty() || correo.isEmpty()) {
+                throw IllegalArgumentException("Todos los campos deben ser completados.")
+            }
+
+            val valores = ContentValues().apply {
+                put("nombre", nombre)
+                put("apellido", apellido)
+                put("relacionUsuario", relacionUsuario)
+                put("telefono", telefono)
+                put("correo", correo)
+            }
+
+            // Solo actualiza si el contacto pertenece al usuario activo
+            resultado = db.update("contactoUsuario", valores, "idContacto = ? AND idUsuario = ?", arrayOf(idContacto, idUsuario.toString()))
+        } catch (e: Exception) {
+            Log.e("ActualizarUsuario", "Error al actualizar contacto", e)
+        } finally {
+            db.close()
+        }
+
+        return resultado
+    }
+
+    // Elimina un contacto asegurándose que pertenece al usuario activo
+    fun eliminarContacto(idContacto: String): Int {
+        val idUsuario = obtenerIdUsuarioDeSesion()
+        if (idUsuario == -1L) return 0
+
+        val db = dbHelper.writableDatabase
+        val resultado = db.delete("contactoUsuario", "idContacto = ? AND idUsuario = ?", arrayOf(idContacto, idUsuario.toString()))
+        db.close()
+        return resultado
     }
 }
+
+// Funciones para hash y verificación de contraseñas
 fun hashPassword(password: String, salt: ByteArray = SecureRandom().generateSeed(16)): String {
     val spec = PBEKeySpec(password.toCharArray(), salt, 10000, 256)
     val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
@@ -226,9 +265,10 @@ fun hashPassword(password: String, salt: ByteArray = SecureRandom().generateSeed
 
 fun verifyPassword(password: String, stored: String): Boolean {
     val parts = stored.split(":")
+    if (parts.size != 2) return false
     val salt = Base64.decode(parts[0], Base64.NO_WRAP)
     val hashOfInput = hashPassword(password, salt)
-    return constantTimeEquals(stored,hashOfInput)
+    return constantTimeEquals(stored, hashOfInput)
 }
 
 fun constantTimeEquals(a: String, b: String): Boolean {
@@ -239,6 +279,3 @@ fun constantTimeEquals(a: String, b: String): Boolean {
     }
     return result == 0
 }
-
-// Clase modelo para Usuario
-data class Usuario(val id: String, val email: String, val telefono: String, val password: String)

@@ -35,15 +35,29 @@ class FourthFragment : Fragment() {
         val checkboxSms = view.findViewById<CheckBox>(R.id.checkbox_sms_1)
         val checkboxWhatsapp = view.findViewById<CheckBox>(R.id.checkbox_whatsapp_1)
 
+        val checkboxSms2 = view.findViewById<CheckBox>(R.id.checkbox_sms_2)
+        val checkboxWhatsapp2 = view.findViewById<CheckBox>(R.id.checkbox_whatsapp_2)
+
         val prefs = requireContext().getSharedPreferences("config_alerta", Context.MODE_PRIVATE)
         checkboxSms.isChecked = prefs.getBoolean("alerta_sms", false)
         checkboxWhatsapp.isChecked = prefs.getBoolean("alerta_whatsapp", false)
+        checkboxSms2.isChecked = prefs.getBoolean("alerta_sms2", false)
+        checkboxWhatsapp2.isChecked = prefs.getBoolean("alerta_whatsapp2", false)
 
         checkboxSms.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean("alerta_sms", isChecked).apply()
         }
         checkboxWhatsapp.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean("alerta_whatsapp", isChecked).apply()
+        }
+
+        // Guardar cambios cuando el usuario los modifica
+        checkboxSms2.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean("alerta_sms2", isChecked).apply()
+        }
+
+        checkboxWhatsapp2.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean("alerta_whatsapp2", isChecked).apply()
         }
 
         /*// Guardar preferencias biometría

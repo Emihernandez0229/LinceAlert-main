@@ -90,7 +90,9 @@ class DatabaseHelper(context: Context) :
                 apellido TEXT NOT NULL,
                 relacionUsuario TEXT NOT NULL,
                 telefono TEXT NOT NULL,
-                correo TEXT NOT NULL
+                correo TEXT NOT NULL,
+                idUsuario INTEGER NOT NULL,
+                FOREIGN KEY (idUsuario) REFERENCES usuarios(idUsuario) ON DELETE CASCADE
             )
         """
 
