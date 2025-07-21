@@ -31,12 +31,16 @@ class FourthFragment : Fragment() {
 
         bluetoothStatusText = view.findViewById(R.id.bluetoothStatusText)
 
+
+
         // Checkboxes para configuración de alerta
         val checkboxSms = view.findViewById<CheckBox>(R.id.checkbox_sms_1)
         val checkboxWhatsapp = view.findViewById<CheckBox>(R.id.checkbox_whatsapp_1)
 
         val checkboxSms2 = view.findViewById<CheckBox>(R.id.checkbox_sms_2)
         val checkboxWhatsapp2 = view.findViewById<CheckBox>(R.id.checkbox_whatsapp_2)
+
+
 
         val prefs = requireContext().getSharedPreferences("config_alerta", Context.MODE_PRIVATE)
         checkboxSms.isChecked = prefs.getBoolean("alerta_sms", false)
@@ -84,6 +88,12 @@ class FourthFragment : Fragment() {
             prefsLoginBiometria.edit().putBoolean("biometria_activada", isChecked).apply()
         }
 
+        val rastrearUbicacionButton = view.findViewById<LinearLayout>(R.id.rastrear_ubicacion_button)
+        rastrearUbicacionButton.setOnClickListener {
+            Toast.makeText(context, "Función próximamente disponible", Toast.LENGTH_SHORT).show()
+        }
+
+
 
 
 
@@ -100,12 +110,9 @@ class FourthFragment : Fragment() {
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
         }
-        val rastreoBtn = view.findViewById<LinearLayout>(R.id.rastrear_ubicacion_button)
-        rastreoBtn.setOnClickListener {
-            // Abre tu mapa o consulta al ESP32
-            val intent = Intent(requireContext(), SecondFragment::class.java)
-            startActivity(intent)
-        }
+
+
+
 
 
 
