@@ -129,7 +129,7 @@ class FourthFragment : Fragment() {
                 prefs.edit().putString("numero_guardado", nuevoNumero).apply()
                 Toast.makeText(requireContext(), "Número guardado", Toast.LENGTH_SHORT).show()
             }
-        }o
+        }
 
 
         val logoutButton = view.findViewById<LinearLayout>(R.id.logout_button)

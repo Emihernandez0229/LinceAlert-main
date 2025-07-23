@@ -1,5 +1,6 @@
 package com.example.alertlince
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Patterns
@@ -99,6 +100,10 @@ class RegisterUser : Fragment() {
 
         btnSignUp.isEnabled = true
         if (resultado != -1L) {  // Si la inserción fue exitosa
+            val prefs = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+            prefs.edit().putLong("idUsuario", resultado)
+                .putBoolean("isLoggedIn", true).apply()
+
             Toast.makeText(context, "Usuario registrado exitosamente", Toast.LENGTH_SHORT).show()
 
             activity?.let {
