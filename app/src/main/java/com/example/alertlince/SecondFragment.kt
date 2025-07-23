@@ -1,15 +1,20 @@
 package com.example.alertlince
 
 import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -18,6 +23,8 @@ import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import android.content.IntentFilter
+
 
 class SecondFragment : Fragment(), OnMapReadyCallback {
 
@@ -54,12 +61,13 @@ class SecondFragment : Fragment(), OnMapReadyCallback {
             solicitarPermisosUbicacion()
         }
 
-        // Habilitar las interacciones del mapa
-        googleMap.uiSettings.isZoomControlsEnabled = true // Habilita los controles de zoom
-        googleMap.uiSettings.isScrollGesturesEnabled = true // Habilita el desplazamiento
-        googleMap.uiSettings.isZoomGesturesEnabled = true // Habilita el zoom con gestos
-        googleMap.uiSettings.isRotateGesturesEnabled = true // Habilita la rotación con gestos
-        googleMap.uiSettings.isTiltGesturesEnabled = true // Habilita la inclinación con gestos
+        googleMap.uiSettings.apply {
+            isZoomControlsEnabled = true
+            isScrollGesturesEnabled = true
+            isZoomGesturesEnabled = true
+            isRotateGesturesEnabled = true
+            isTiltGesturesEnabled = true
+        }
     }
 
     private fun obtenerUbicacion() {
@@ -70,12 +78,10 @@ class SecondFragment : Fragment(), OnMapReadyCallback {
         ) {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 location?.let {
-                    val ubicacionUsuario = LatLng(location.latitude, location.longitude)
+                    val ubicacionUsuario = LatLng(it.latitude, it.longitude)
                     googleMap.addMarker(MarkerOptions().position(ubicacionUsuario).title("¡Tu ubicación actual!"))
                     googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(ubicacionUsuario, 15f))
-                } ?: run {
-                    Toast.makeText(requireContext(), "No se pudo obtener la ubicación", Toast.LENGTH_SHORT).show()
-                }
+                } ?: Toast.makeText(requireContext(), "No se pudo obtener la ubicación", Toast.LENGTH_SHORT).show()
             }
         } else {
             solicitarPermisosUbicacion()
@@ -90,10 +96,34 @@ class SecondFragment : Fragment(), OnMapReadyCallback {
         )
     }
 
+    private val smsReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val textoSMS = intent?.getStringExtra("texto_sms")  // debe coincidir con el extra que envías
+            textoSMS?.let {
+                val coords = extraerCoordenadas(it)
+                if (coords != null) {
+                    googleMap.clear()
+                    googleMap.addMarker(MarkerOptions().position(coords).title("Ubicación recibida"))
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(coords, 15f))
+                } else {
+                    Toast.makeText(requireContext(), "No se detectaron coordenadas en el SMS", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun extraerCoordenadas(texto: String): LatLng? {
+        val regex = """q=([-+]?[0-9]*\.?[0-9]+),([-+]?[0-9]*\.?[0-9]+)""".toRegex()
+        val match = regex.find(texto)
+        return if (match != null && match.groupValues.size >= 3) {
+            val lat = match.groupValues[1].toDoubleOrNull()
+            val lon = match.groupValues[2].toDoubleOrNull()
+            if (lat != null && lon != null) LatLng(lat, lon) else null
+        } else null
+    }
+
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
+        requestCode: Int, permissions: Array<String>, grantResults: IntArray
     ) {
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -109,21 +139,31 @@ class SecondFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        LocalBroadcastManager.getInstance(requireContext())
+            .registerReceiver(smsReceiver, IntentFilter("sms_ubicacion_recibida"))
+    }
+
+    override fun onStop() {
+        super.onStop()
+        LocalBroadcastManager.getInstance(requireContext())
+            .unregisterReceiver(smsReceiver)
+    }
+
+    // Los métodos onResume, onPause, onDestroy, onLowMemory igual
     override fun onResume() {
         super.onResume()
         mapView.onResume()
     }
-
     override fun onPause() {
         super.onPause()
         mapView.onPause()
     }
-
     override fun onDestroy() {
         super.onDestroy()
         mapView.onDestroy()
     }
-
     override fun onLowMemory() {
         super.onLowMemory()
         mapView.onLowMemory()

@@ -1,16 +1,23 @@
 package com.example.alertlince
 
+import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.telephony.SmsManager
 import android.util.Log
 import android.view.*
 import android.widget.*
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.example.alertlince.controller.UsuarioDao
+
 
 class FourthFragment : Fragment() {
 
@@ -19,6 +26,8 @@ class FourthFragment : Fragment() {
     private val checkHandler = Handler()
     private val checkInterval = 10000L // Verificar cada 10 segundos
     private lateinit var checkBiometria:CheckBox
+    private var numeroIngresado: String? = null
+
 
 
     override fun onCreateView(
@@ -88,15 +97,39 @@ class FourthFragment : Fragment() {
             prefsLoginBiometria.edit().putBoolean("biometria_activada", isChecked).apply()
         }
 
+
+
+
+
         val rastrearUbicacionButton = view.findViewById<LinearLayout>(R.id.rastrear_ubicacion_button)
         rastrearUbicacionButton.setOnClickListener {
-            Toast.makeText(context, "Función próximamente disponible", Toast.LENGTH_SHORT).show()
+            val numeroGuardado = prefs.getString("numero_guardado", null)
+
+            if (numeroGuardado != null) {
+                // Ya hay número guardado, se usa directamente
+                sendSms("Enviame la ubicacion", numeroGuardado)
+                Toast.makeText(requireContext(),"Recuperando Ubicacion", Toast.LENGTH_SHORT).show()
+            } else {
+                // Mostrar diálogo para ingresar el número solo si no existe
+                val dialogo = DialogAlert()
+                dialogo.mostrarVentanaEmergente(requireContext()) { numeroIngresado ->
+                    val numero = numeroIngresado.trim()
+                    prefs.edit().putString("numero_guardado", numero).apply()
+                    sendSms("Enviame la ubicacion", numero)
+                }
+            }
         }
 
+        val numeroGuardado = prefs.getString("numero_guardado", "") ?: ""
 
-
-
-
+        val cambiarNumeroButton = view.findViewById<LinearLayout>(R.id.cambiar_numero_button)
+        cambiarNumeroButton.setOnClickListener {
+            val dialogo = DialogAlert()
+            dialogo.mostrarVentanaEmergente(requireContext(), numeroGuardado) { nuevoNumero ->
+                prefs.edit().putString("numero_guardado", nuevoNumero).apply()
+                Toast.makeText(requireContext(), "Número guardado", Toast.LENGTH_SHORT).show()
+            }
+        }o
 
 
         val logoutButton = view.findViewById<LinearLayout>(R.id.logout_button)
@@ -132,6 +165,26 @@ class FourthFragment : Fragment() {
                 checkHandler.postDelayed(this, checkInterval)
             }
         })
+    }
+
+
+
+    private fun sendSms(message: String, numero: String) {
+        val context = requireContext()
+        val smsManager = SmsManager.getDefault()
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS)
+            != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.SEND_SMS), 2)
+            Toast.makeText(context, "Permiso para enviar SMS no concedido", Toast.LENGTH_SHORT).show()
+            return
+        }
+        try {
+            smsManager.sendTextMessage(numero, null, message, null, null)
+            Log.d("SMS", "Mensaje enviado a: $numero")
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(context, "Error al enviar SMS a $numero", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun checkBluetoothStatus() {
